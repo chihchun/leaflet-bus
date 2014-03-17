@@ -215,10 +215,9 @@ L.Util.extend(L.OSM, {
 
     var ways = xml.getElementsByTagName("way");
     for (var i = 0; i < ways.length; i++) {
-      var way = ways[i], nds = way.getElementsByTagName("nd");
-
+      var way = ways[i], nds = way.getElementsByTagName("nd"), id = way.getAttribute("id");
       var way_object = {
-        id: way.getAttribute("id"),
+        id: id,
         type: "way",
         nodes: new Array(nds.length),
         tags: this.getTags(way)
@@ -228,7 +227,7 @@ L.Util.extend(L.OSM, {
         way_object.nodes[j] = nodes[nds[j].getAttribute("ref")];
       }
 
-      result.push(way_object);
+      result[id] = way_object;
     }
 
     return result;
@@ -249,10 +248,13 @@ L.Util.extend(L.OSM, {
       };
 
       for (var j = 0; j < members.length; j++) {
-        if (members[j].getAttribute("type") === "node")
-          rel_object.members[j] = nodes[members[j].getAttribute("ref")];
-        else // relation-way and relation-relation membership not implemented
-          rel_object.members[j] = null;
+        if (members[j].getAttribute("type") === "node") {
+            rel_object.members[j] = nodes[members[j].getAttribute("ref")];
+        } else if (members[j].getAttribute("type") === "way") {
+            rel_object.members[j] = ways[members[j].getAttribute("ref")];
+        } else { // relation-relation membership not implemented 
+            rel_object.members[j] = null;
+        }
       }
 
       result.push(rel_object);
