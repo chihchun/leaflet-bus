@@ -19,7 +19,7 @@
 var osm = new L.OSM.Mapnik();
 
 
-var xlayers = new L.OSM.DataLayer();
+var xlayers = new L.LayerGroup();
 // set up the map
 var map = new L.Map('map', {
     center: new L.LatLng( 25.03738, 121.56351 ),
@@ -30,11 +30,11 @@ var map = new L.Map('map', {
 .addControl(new L.Control.Permalink({text: 'Permalink'}))
 .on('zoomend', xapi)
 .on('dragend', xapi);
-
+map.addLayer(xlayers);
 
 function xapi(){
     map.removeLayer(xlayers);
-    xlayers = new L.OSM.DataLayer();
+    xlayers = new L.LayerGroup();
     map.addLayer(xlayers);
     $.ajax({
         url: "http://www.overpass-api.de/api/xapi?*[bbox=" + map.getBounds().toBBoxString() + "]",
@@ -45,10 +45,13 @@ function xapi(){
             ways = L.OSM.getWays(xml, nodes),
             relations = L.OSM.getRelations(xml, nodes, ways);
             for (var i = 0; i < relations.length; i++) {
+                var layer = new L.OSM.DataLayer();
+                layer.bindPopup(relations[i].tags['name']);
+                xlayers.addLayer(layer);
                 if(relations[i].tags['route'] == 'bus'){
                     for (var j = 0 ; j < relations[i].members.length ; j++) {
                        if(relations[i].members[j]) {
-                            xlayers.addData([relations[i].members[j]]);
+                            layer.addData([relations[i].members[j]]);
                        }
                     }
                 }
